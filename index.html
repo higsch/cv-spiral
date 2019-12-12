@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+  <head>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="createSpiral.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="spiral"></div>
+
+    <script>
+      (async function () {
+        let visual;
+        const target = document.querySelector('#spiral');
+        let width, height;
+
+        function setDimensions() {
+          
+        }
+
+        function updateVisual() {
+          if (!visual || !target) return;
+
+          width = target.offsetWidth;
+          height = target.offsetHeight;
+
+          visual
+            .width(width)
+            .height(height);
+          d3.select(target).call(visual);
+        }
+
+        const periods = await d3.csv('cv_periods.csv', (d) => {
+          function timeParser(time) {
+            if (time === 'today') return new Date();
+            return d3.timeParse('%Y-%m')(time);
+          }
+
+          return {
+            ...d,
+            id: +d.id,
+            start: timeParser(d.start),
+            end: timeParser(d.end),
+            offset: +d.offset
+          };
+        });
+
+        visual = createSpiral(periods);
+        updateVisual();
+
+        d3.select(window).on('resize', function() {
+          if (!width || target.offsetWidth !== width) updateVisual();
+        });
+
+      })();
+    </script>
+  </body>
+</html>
