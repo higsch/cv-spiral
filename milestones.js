@@ -21,7 +21,7 @@ function createMilestone(wrapper, milestone, width) {
       .attr('d', 'M4,15 L15,22 L26,15 L26,26 L4,26 Z')
       .attr('fill', '#74757B');
 
-    icon.attr('transform', 'translate(-12, -11) scale(0.8)');
+    icon.attr('transform', `translate(${-width / 2.7}, ${-width / 2.7}) scale(${width / 40})`);
   }
   
   return g;
