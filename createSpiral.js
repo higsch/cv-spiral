@@ -1,4 +1,4 @@
-function createSpiral(periods, width = 300, height = 100) {
+function createSpiral(periods, milestones, width = 300, height = 100) {
   
   // ========= Constants and properties ========= //
   const pi2 = 2 * Math.PI;
@@ -17,7 +17,12 @@ function createSpiral(periods, width = 300, height = 100) {
   const typeColors = d3.scaleOrdinal()
     .domain(['education', 'work'])
     .range(['#77BA99', '#D7C0D0']); //D33F49, EFF0D1, 262730
-  
+
+  // ========= Offset scales ========= //
+  const offsetScale = d3.scaleOrdinal()
+    .domain(['education', 'work', 'path', 'graduation'])
+    .range([-10, -10, 1, -17]);
+
   // ========= Chart definition ========= //
   function chart(selection) {
     const strokeWidth = Math.min(width / 100, 8);
@@ -34,15 +39,6 @@ function createSpiral(periods, width = 300, height = 100) {
     const defs = svg.append('defs');
 
     // ========= Build base spiral ========= //
-    const spiralBaseBg = defs.append('radialGradient')
-      .attr('id', 'spiral-base-bg')
-      .attr('cx', '50%')
-      .attr('cy', '50%')
-      .attr('r', '70%');
-
-    spiralBaseBg.append('stop').attr('offset', '0%').style('stop-color', '#B6485B');
-    spiralBaseBg.append('stop').attr('offset', '100%').style('stop-color', '#F9627D');
-
     const spiralData = generateSpiralData({
       startAngle: -Math.PI / 2,
       endAngle: 4.5 * Math.PI / 2,
@@ -100,7 +96,8 @@ function createSpiral(periods, width = 300, height = 100) {
     }
 
     // period to points
-    const periodScale = function({ start, end, offset = 0 }) {
+    const periodScale = function({ start, end, type }) {
+      const offset = offsetScale(type);
       const startPoint = getDatePoint(start, offset);
       const endPoint = getDatePoint(end, offset);
 
@@ -156,7 +153,7 @@ function createSpiral(periods, width = 300, height = 100) {
           const month = d.getMonth();
           const day = d.getDate();
           const nextDate = new Date(year + 1, month, day);
-          return spiralLine(generateSpiralData(periodScale({ start: d, end: nextDate, offset: 1 })));
+          return spiralLine(generateSpiralData(periodScale({ start: d, end: nextDate, type: 'path' })));
         })
         .attr('stroke', 'none')
         .attr('fill', 'none');
@@ -180,15 +177,30 @@ function createSpiral(periods, width = 300, height = 100) {
     svg.append('g')
       .attr('class', 'periods')
       .attr('transform', `translate(${width / 2} ${height / 2})`)
-      .selectAll('.periods')
+      .selectAll('.period')
       .data(periods)
       .join('path')
-      .attr('class', 'period')
-      .attr('fill', 'none')
-      .attr('stroke', (d) => typeColors(d.type))
-      .attr('stroke-width', strokeWidth)
-      .attr('stroke-linecap', 'round')
-      .attr('d', (d) => spiralLine(generateSpiralData(periodScale(d))));
+        .attr('class', 'period')
+        .attr('fill', 'none')
+        .attr('stroke', (d) => typeColors(d.type))
+        .attr('stroke-width', strokeWidth)
+        .attr('stroke-linecap', 'round')
+        .attr('d', (d) => spiralLine(generateSpiralData(periodScale(d))));
+
+    // ============ Milestones ========= //
+    const milestonesWrapper = svg.append('g')
+      .attr('class', 'milestones')
+      .attr('transform', `translate(${width / 2} ${height / 2})`);
+
+    milestones.forEach(milestone => {
+      const wrapper = milestonesWrapper.append('g');
+      const width = strokeWidth * 4;
+      const icon = createMilestone(wrapper, milestone, width);
+      const {x, y} = getDatePoint(milestone.date, offsetScale(milestone.type));
+      icon
+        .attr('transform', `translate(${x} ${y})`)
+        .on('mouseenter', () => createMilestoneInfo(milestonesWrapper, milestone, x, y, width, height));
+    });
   }
 
   // ========= Generate data for base spiral ========= //

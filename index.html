@@ -1,6 +1,7 @@
 <!DOCTYPE html>
   <head>
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="milestones.js"></script>
     <script src="createSpiral.js"></script>
 
     <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
@@ -41,12 +42,19 @@
             ...d,
             id: +d.id,
             start: timeParser(d.start),
-            end: timeParser(d.end),
-            offset: +d.offset
+            end: timeParser(d.end)
           };
         });
 
-        visual = createSpiral(periods);
+        const milestones = await d3.csv('cv_milestones.csv', (d) => {
+          return {
+            ...d,
+            id: +d.id,
+            date: d3.timeParse('%Y-%m-%d')(d.date)
+          };
+        });
+
+        visual = createSpiral(periods, milestones);
         updateVisual();
 
         d3.select(window).on('resize', function() {
