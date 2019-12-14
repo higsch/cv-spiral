@@ -1,5 +1,10 @@
-id,name,type,start,end
-0,B.Sc.,education,2008-10,2011-08
-1,M.Sc.,education,2011-10,2013-09
-2,Ph.D.,work,2014-01,2018-03
-3,Postdoc,work,2018-04,today
+id,name,type,start,end,info
+0,B.Sc.,education,2008-10,2011-08,
+1,M.Sc.,education,2011-10,2013-09,
+2,Ph.D.,work,2014-01,2018-03,
+3,Postdoc,work,2018-04,today,
+4,Max Weber-Programm,stipend2,2010-10,2013-09,
+5,Ph.D. scholarship,stipend,2015-05,2018-02,
+6,Study scholarship,stipend,2010-03,2013-09,
+7,Junge Akademie,stipend3,2010-07,2011-08,
+8,Barncancerfonden,stipend,2019-09,today,

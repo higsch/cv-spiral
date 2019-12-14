@@ -3,7 +3,7 @@ function createSpiral(periods, milestones, width = 300, height = 100) {
   // ========= Constants and properties ========= //
   const pi2 = 2 * Math.PI;
   const yearParser = d3.timeParse('%Y');
-  const padding = 40;
+  const padding = 100;
   const minYear = d3.timeYear.floor(d3.min(periods, (d) => d.start));
   const maxYear = yearParser(d3.timeYear.floor(d3.max(periods, (d) => d.end)).getFullYear() + 2);
   
@@ -13,20 +13,21 @@ function createSpiral(periods, milestones, width = 300, height = 100) {
     .radius((d) => d.radius)
     .curve(d3.curveCardinal);
 
-  // ========= Color scales ========= //
-  const typeColors = d3.scaleOrdinal()
-    .domain(['education', 'work'])
-    .range(['#77BA99', '#D7C0D0']); //D33F49, EFF0D1, 262730
+  // ========= Color scale ========= //
+  const typesPeriods = ['stipend', 'stipend2', 'stipend3', 'education', 'work', 'path'];
+  const typesMilestones = ['graduation', 'countrychange', 'award', 'voluntary']
 
-  // ========= Offset scales ========= //
+  const typeColors = d3.scaleOrdinal()
+    .domain(typesPeriods)
+    .range(['#A5D8FF', '#A5D8FF', '#A5D8FF', '#99A9C4', '#D7C0D0']);
+
+  // ========= Offset scale ========= //
   const offsetScale = d3.scaleOrdinal()
-    .domain(['education', 'work', 'path', 'graduation'])
-    .range([-10, -10, 1, -17]);
+    .domain([...typesPeriods, ...typesMilestones])
+    .range([-17, -20, -23, -10, -10, 1, -10, -10, 7, 7]);
 
   // ========= Chart definition ========= //
   function chart(selection) {
-    const strokeWidth = Math.min(width / 100, 8);
-
     // ========= Clear ========= //
     selection.selectAll('svg').remove();
 
@@ -59,7 +60,14 @@ function createSpiral(periods, milestones, width = 300, height = 100) {
       .attr('stroke-linecap', 'round')
       .attr('d', spiralLine);
 
-    // ========= Spiral length scales ========= //
+    // ========= Spiral scales ========= //
+
+    // stroke-width
+    const w = width / 180;
+    const strokeWidthScale = d3.scaleOrdinal()
+      .domain(typesPeriods)
+      .range([w, w, w, w * 1.6, w * 1.6, w]);
+
     // year to spiral length
     const lengthScale = d3.scaleTime()
       .domain([minYear, maxYear])
@@ -139,7 +147,7 @@ function createSpiral(periods, milestones, width = 300, height = 100) {
       .attr('class', 'year-circles')
       .attr('cx', (d) => pointScale(d).x)
       .attr('cy', (d) => pointScale(d).y)
-      .attr('r', strokeWidth / 2)
+      .attr('r', strokeWidthScale('work') / 2)
       .attr('fill', '#74757B')
       .attr('fill-opacity', 0.2);
 
@@ -183,7 +191,7 @@ function createSpiral(periods, milestones, width = 300, height = 100) {
         .attr('class', 'period')
         .attr('fill', 'none')
         .attr('stroke', (d) => typeColors(d.type))
-        .attr('stroke-width', strokeWidth)
+        .attr('stroke-width', (d) => strokeWidthScale(d.type))
         .attr('stroke-linecap', 'round')
         .attr('d', (d) => spiralLine(generateSpiralData(periodScale(d))));
 
@@ -194,8 +202,8 @@ function createSpiral(periods, milestones, width = 300, height = 100) {
 
     milestones.forEach(milestone => {
       const wrapper = milestonesWrapper.append('g');
-      const width = strokeWidth * 4;
-      const icon = createMilestone(wrapper, milestone, width);
+      const iconWidth = width / 35;
+      const icon = createMilestone(wrapper, milestone, iconWidth);
       const {x, y} = getDatePoint(milestone.date, offsetScale(milestone.type));
       icon
         .attr('transform', `translate(${x} ${y})`)
